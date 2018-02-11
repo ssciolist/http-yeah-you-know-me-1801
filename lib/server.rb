@@ -23,8 +23,27 @@ class Server
     end
   end
 
+  def diagnostics
+    verb = @request_lines[0].split(" ")[0]
+    path = @request_lines[0].split(" ")[1]
+    protocol = @request_lines[0].split(" ")[2]
+    host = @request_lines[5].split(" ")[1].split(":")[0]
+    port = @request_lines[5].split(" ")[1].split(":")[1]
+    origin = @request_lines[5].split(" ")[1].split(":")[0]
+
+    "<pre>\n
+    Verb: #{verb}\n
+    Path: #{path}\n
+    Protocol: #{protocol}\n
+    Host: #{host}\n
+    Port: #{port}\n
+    Origin: #{origin}\n
+    Accept: #{accept}\n
+    </pre>"
+  end
+
   def respond
-    response = "Hello World! (#{@hello_counter})"
+    response = "Hello World! (#{@hello_counter})#{diagnostics}"
     output = "<html><head></head><body>#{response}</body></html>"
     headers = ["http/1.1 200 ok",
               "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
