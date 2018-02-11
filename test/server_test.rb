@@ -13,4 +13,12 @@ class TestServer < Minitest::Test
     response = Faraday.get "http://127.0.0.1:9292/"
     assert response.body.include?("(1)")
   end
+
+  def test_server_gets_diagnosics
+    response = Faraday.get "http://127.0.0.1:9292/"
+    assert response.body.include?("Verb: GET")
+    assert response.body.include?("Path: /")
+    assert response.body.include?("Path: /")
+    assert response.body.include?("Protocol: HTTP/1.1")
+  end
 end
