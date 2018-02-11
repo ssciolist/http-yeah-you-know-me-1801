@@ -1,7 +1,7 @@
 require './lib/server'
 
 server = Server.new
-server.respond
+server.run
 
 #start method
 ## responder probably don't do a loop
