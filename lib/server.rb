@@ -3,7 +3,9 @@ require 'socket'
 require 'pry'
 
 class Server
-  attr_reader :client
+  attr_reader :client,
+              :tcp_server,
+              :request_lines
   def initialize
     @tcp_server = TCPServer.new(9292)
     @hello_counter = 0
@@ -13,13 +15,12 @@ class Server
     @client = @tcp_server.accept
     @request_lines = []
     loop do
-    while line = client.gets and !line.chomp.empty?
-      #look into tcp server.read
-      @request_lines << line.chomp
-    end
-    puts "Got this request:"
-    puts @request_lines.inspect
-    respond
+      while line = client.gets and !line.chomp.empty?
+        #look into tcp server.read
+        @request_lines << line.chomp
+      end
+      puts @request_lines.inspect
+      respond
     end
   end
 
@@ -27,10 +28,11 @@ class Server
     verb = @request_lines[0].split(" ")[0]
     path = @request_lines[0].split(" ")[1]
     protocol = @request_lines[0].split(" ")[2]
-    host = @request_lines[1].split(" ")[1].split(":")[0]
-    port = @request_lines[1].split(" ")[1].split(":")[1]
+    host = @request_lines.grep(/^Host/)[0].split(' ')[1].split(':')[0]
+    port = @request_lines.grep(/^Host/)[0].split(' ')[1].split(':')[1]
     origin = @request_lines[1].split(" ")[1].split(":")[0]
-    accept = @request_lines[6].split(" ")[1]
+    # will need to fix that to not be host somehow
+    accept = @request_lines.grep(/^Accept:/)[0].split(' ')[1]
 
     "<pre>
     Verb: #{verb}
@@ -46,7 +48,7 @@ class Server
   def respond
     diagnostic_check = diagnostics
     response = "Hello World! (#{@hello_counter})"
-    output = "<html><head></head><body>#{diagnostic_check}</body></html>"
+    output = "<html><head></head><body>#{response}#{diagnostic_check}</body></html>"
     headers = ["http/1.1 200 ok",
               "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
               "server: ruby",
