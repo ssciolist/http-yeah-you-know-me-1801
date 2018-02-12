@@ -18,7 +18,6 @@ class Server
     end
     puts "Got this request:"
     puts @request_lines.inspect
-    @request_lines
     respond
     end
   end
@@ -30,21 +29,23 @@ class Server
     host = @request_lines[5].split(" ")[1].split(":")[0]
     port = @request_lines[5].split(" ")[1].split(":")[1]
     origin = @request_lines[5].split(" ")[1].split(":")[0]
+    accept = "blah"
 
-    "<pre>\n
-    Verb: #{verb}\n
-    Path: #{path}\n
-    Protocol: #{protocol}\n
-    Host: #{host}\n
-    Port: #{port}\n
-    Origin: #{origin}\n
-    Accept: #{accept}\n
+    blah = "<pre>
+    Verb: #{verb}
+    Path: #{path}
+    Protocol: #{protocol}
+    Host: #{host}
+    Port: #{port}
+    Origin: #{origin}
+    Accept: #{accept}
     </pre>"
   end
 
   def respond
-    response = "Hello World! (#{@hello_counter})#{diagnostics}"
-    output = "<html><head></head><body>#{response}</body></html>"
+    response = "Hello World! (#{@hello_counter})"
+    binding.pry
+    output = "<html><head></head><body>#{diagnostics}</body></html>"
     headers = ["http/1.1 200 ok",
               "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
               "server: ruby",
