@@ -14,6 +14,7 @@ class Server
     @request_lines = []
     loop do
     while line = client.gets and !line.chomp.empty?
+      #look into tcp server.read
       @request_lines << line.chomp
     end
     puts "Got this request:"
@@ -26,12 +27,12 @@ class Server
     verb = @request_lines[0].split(" ")[0]
     path = @request_lines[0].split(" ")[1]
     protocol = @request_lines[0].split(" ")[2]
-    host = @request_lines[5].split(" ")[1].split(":")[0]
-    port = @request_lines[5].split(" ")[1].split(":")[1]
-    origin = @request_lines[5].split(" ")[1].split(":")[0]
-    accept = "blah"
+    host = @request_lines[1].split(" ")[1].split(":")[0]
+    port = @request_lines[1].split(" ")[1].split(":")[1]
+    origin = @request_lines[1].split(" ")[1].split(":")[0]
+    accept = @request_lines[6].split(" ")[1]
 
-    blah = "<pre>
+    "<pre>
     Verb: #{verb}
     Path: #{path}
     Protocol: #{protocol}
@@ -43,9 +44,9 @@ class Server
   end
 
   def respond
+    diagnostic_check = diagnostics
     response = "Hello World! (#{@hello_counter})"
-    binding.pry
-    output = "<html><head></head><body>#{diagnostics}</body></html>"
+    output = "<html><head></head><body>#{diagnostic_check}</body></html>"
     headers = ["http/1.1 200 ok",
               "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
               "server: ruby",
