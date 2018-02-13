@@ -41,4 +41,21 @@ class TestServer < Minitest::Test
     assert response.body.include?("(2)")
   end
 
+  def test_word_search_request_rejects_weird_words
+    response = Faraday.get "http://127.0.0.1:9292/word_search?word=butt0n"
+    word = "butt0n"
+    assert response.body.include?("#{word} is not a known word")
+    response = Faraday.get "http://127.0.0.1:9292/word_search?word=c@w~"
+    word2 = "c@w~"
+    assert response.body.include?("#{word2} is not a known word")
+  end
+
+  def test_word_search_request_finds_actual_words
+    response = Faraday.get "http://127.0.0.1:9292/word_search?word=overfactious"
+    word = "overfactious"
+    assert response.body.include?("#{word} is a known word")
+    response = Faraday.get "http://127.0.0.1:9292/word_search?word=subdorsal"
+    word2 = "subdorsal"
+    assert response.body.include?("#{word2} is a known word")
+  end
 end
