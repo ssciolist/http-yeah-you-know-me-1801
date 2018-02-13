@@ -1,29 +1,34 @@
 # creates server object
 require 'socket'
-require 'date'
+require 'time'
 require 'pry'
 
 class Server
-  attr_reader :client,
-              :tcp_server,
-              :request_lines,
-              :path
+  attr_reader :client
+
   def initialize
     @tcp_server = TCPServer.new(9292)
+    @counter = 0
     @hello_counter = 0
   end
 
   def request_parser
-    @client = @tcp_server.accept
-    @request_lines = []
+
+    # @request_lines = []
     loop do
+      @client = @tcp_server.accept
+      @request_lines = []
       while line = client.gets and !line.chomp.empty?
         #look into tcp server.read
         @request_lines << line.chomp
       end
       puts @request_lines.inspect
+      diagnostics
       pathfinder
+      @counter += 1
+      @client.close
     end
+    @counter
   end
 
   def diagnostics
@@ -35,7 +40,7 @@ class Server
     origin = @request_lines[1].split(" ")[1].split(":")[0]
     # will need to fix that to not be host somehow
     accept = @request_lines.grep(/^Accept:/)[0].split(' ')[1]
-
+    # binding.pry
     "<pre>
     Verb: #{verb}
     Path: #{@path}
@@ -56,10 +61,10 @@ class Server
   end
 
   def root_respond
-    output = "<html><head></head><body>#{diagnostic_check}</body></html>"
+    output = "<html><head></head><body>#{diagnostics}</body></html>"
     client.puts headers(output)
     client.puts output
-    request_parser
+    # request_parser
   end
 
   def hello_world_respond
@@ -67,25 +72,34 @@ class Server
     client.puts headers(output)
     client.puts output
     @hello_counter += 1
-    request_parser
+    # request_parser
   end
 
   def datetime_respond
-    output = Date.today.strftime("%I\:%M%p on %A, %B %e, %Y")
+    output = Time.now.strftime("%I\:%M%p on %A, %B %e, %Y")
     client.puts headers(output)
     client.puts output
-    request_parser
+    # request_parser
+  end
+
+  def shutdown_respond
+    output = "Total Requests: #{@counter}"
+    client.puts headers(output)
+    client.puts output
+    # request_parser
   end
 
   def pathfinder
-     response = case diagnostics.path
-     when "/" then root_respond
-     when '/hello' then hello_world_respond
-     when '/datetime' then datetime_respond
-     else notfound
-     end
-     return response
-   end
+    if @path == "/"
+      root_respond
+    elsif @path == "/hello"
+      hello_world_respond
+    elsif @path == "/datetime"
+      datetime_respond
+    elsif @path == "/shutdown"
+      shutdown_respond
+    end
+  end
 
   def run
     request_parser
