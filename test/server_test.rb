@@ -17,7 +17,7 @@ class TestServer < Minitest::Test
   end
 
   def test_root_request_returns_diagnostic
-    # skip
+    skip
     response = Faraday.get "http://127.0.0.1:9292/"
     assert response.body.include?("Verb: GET")
     assert response.body.include?("Path: /")
@@ -32,7 +32,7 @@ class TestServer < Minitest::Test
   end
 
   def test_datetime_request_returns_date_time
-    skip
+    # skip
     request = Faraday.get "http://127.0.0.1:9292/datetime"
     today = Date.today.strftime("%I\:%M%p on %A, %B %e, %Y")
     assert response.body.include?(today)
@@ -43,4 +43,5 @@ class TestServer < Minitest::Test
     request = Faraday.get "http://127.0.0.1:9292/shutdown"
     assert response.body.include?("(2)")
   end
+
 end
