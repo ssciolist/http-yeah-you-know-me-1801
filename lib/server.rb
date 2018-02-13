@@ -1,5 +1,6 @@
 # creates server object
 require 'socket'
+require 'date'
 require 'pry'
 
 class Server
@@ -49,16 +50,34 @@ class Server
     diagnostic_check = diagnostics
     response = "Hello World! (#{@hello_counter})"
     output = "<html><head></head><body>#{response}#{diagnostic_check}</body></html>"
-    headers = ["http/1.1 200 ok",
-              "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
-              "server: ruby",
-              "content-type: text/html; charset=iso-8859-1",
-              "content-length: #{output.length}\r\n\r\n"].join("\r\n")
-    client.puts headers
+    client.puts headers(output)
     client.puts output
     @hello_counter += 1
     request_parser
   end
+
+  def headers(output)
+    ["http/1.1 200 ok",
+              "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
+              "server: ruby",
+              "content-type: text/html; charset=iso-8859-1",
+              "content-length: #{output.length}\r\n\r\n"].join("\r\n")
+  end
+
+  def hello_world_respond
+    output = "Hello World! (#{@hello_counter})"
+    client.puts headers(output)
+    client.puts output
+    @hello_counter += 1
+  end
+
+  def datetime_respond
+    output = Date.today.strftime("%I\:%M%p on %A, %B %e, %Y")
+    client.puts headers(output)
+    client.puts output
+  end
+
+
 
   def run
     request_parser

@@ -17,7 +17,7 @@ class TestServer < Minitest::Test
   end
 
   def test_root_request_returns_diagnostic
-    skip
+    # skip
     response = Faraday.get "http://127.0.0.1:9292/"
     assert response.body.include?("Verb: GET")
     assert response.body.include?("Path: /")
