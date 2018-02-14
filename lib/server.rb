@@ -71,17 +71,36 @@ class Server
     @hello_counter += 1
   end
 
-  def datetime_respond
+  def date_time_respond
     output = Time.now.strftime("%I\:%M%p on %A, %B %e, %Y")
     client.puts headers(output)
     client.puts output
   end
 
-  def shutdown_respond
+  def shut_down_respond
     output = "Total Requests: #{@counter}"
     client.puts headers(output)
     client.puts output
   end
+
+  def word_search_respond
+    if dictionary.include?(provided_word)
+      output = "#{provided_word} is a known word"
+    else
+      output = "#{provided_word} is not a known word"
+    end
+    client.puts headers(output)
+    client.puts output
+  end
+
+  def dictionary
+    dict = File.read('/usr/share/dict/words').split("\n")
+  end
+
+  def provided_word
+    provided_word = @path.split("=")[1]
+  end
+
 
   def pathfinder
     if @path == "/"
@@ -89,9 +108,11 @@ class Server
     elsif @path == "/hello"
       hello_world_respond
     elsif @path == "/datetime"
-      datetime_respond
+      date_time_respond
     elsif @path == "/shutdown"
-      shutdown_respond
+      shut_down_respond
+    elsif @path[0,12] == "/word_search"
+      word_search_respond
     end
   end
 
