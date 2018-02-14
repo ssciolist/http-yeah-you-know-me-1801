@@ -22,7 +22,7 @@ class Server
       end
       puts @request_lines.inspect
       diagnostics
-      pathfinder
+      verbfinder
       @counter += 1
       @client.close
     end
@@ -30,7 +30,7 @@ class Server
   end
 
   def diagnostics
-    verb = @request_lines[0].split(" ")[0]
+    @verb = @request_lines[0].split(" ")[0]
     @path = @request_lines[0].split(" ")[1]
     protocol = @request_lines[0].split(" ")[2]
     host = @request_lines.grep(/^Host/)[0].split(' ')[1].split(':')[0]
@@ -38,9 +38,8 @@ class Server
     origin = @request_lines[1].split(" ")[1].split(":")[0]
     # will need to fix that to not be host somehow
     accept = @request_lines.grep(/^Accept:/)[0].split(' ')[1]
-    # binding.pry
     "<pre>
-    Verb: #{verb}
+    Verb: #{@verb}
     Path: #{@path}
     Protocol: #{protocol}
     Host: #{host}
@@ -65,10 +64,10 @@ class Server
   end
 
   def hello_world_respond
+    @hello_counter += 1
     output = "Hello World! (#{@hello_counter})"
     client.puts headers(output)
     client.puts output
-    @hello_counter += 1
   end
 
   def date_time_respond
@@ -94,13 +93,30 @@ class Server
   end
 
   def dictionary
-    dict = File.read('/usr/share/dict/words').split("\n")
+    File.read('/usr/share/dict/words').split("\n")
   end
 
   def provided_word
-    provided_word = @path.split("=")[1]
+    @path.split("=")[1].downcase
   end
 
+  def game_respond
+    output = "Guess count: "
+    client.puts headers(output)
+    client.puts output
+  end
+
+  def verbfinder
+    if @verb == "GET"
+      pathfinder
+    elsif @verb == "POST"
+      postreader
+    end
+  end
+
+  def postreader
+    game_respond
+  end
 
   def pathfinder
     if @path == "/"
@@ -111,8 +127,10 @@ class Server
       date_time_respond
     elsif @path == "/shutdown"
       shut_down_respond
-    elsif @path[0,12] == "/word_search"
+    elsif @path[0, 12] == "/word_search"
       word_search_respond
+    elsif @path == "/game"
+      game_respond
     end
   end
 
