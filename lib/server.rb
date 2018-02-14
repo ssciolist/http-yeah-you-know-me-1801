@@ -1,8 +1,8 @@
-# creates server object
 require 'socket'
 require 'time'
 require 'pry'
 
+# creates server object
 class Server
   attr_reader :client
 
@@ -13,13 +13,11 @@ class Server
   end
 
   def request_parser
-
-    # @request_lines = []
     loop do
       @client = @tcp_server.accept
       @request_lines = []
       while line = client.gets and !line.chomp.empty?
-        #look into tcp server.read
+        # look into tcp server.read
         @request_lines << line.chomp
       end
       puts @request_lines.inspect
@@ -64,7 +62,6 @@ class Server
     output = "<html><head></head><body>#{diagnostics}</body></html>"
     client.puts headers(output)
     client.puts output
-    # request_parser
   end
 
   def hello_world_respond
@@ -72,22 +69,38 @@ class Server
     client.puts headers(output)
     client.puts output
     @hello_counter += 1
-    # request_parser
   end
 
-  def datetime_respond
+  def date_time_respond
     output = Time.now.strftime("%I\:%M%p on %A, %B %e, %Y")
     client.puts headers(output)
     client.puts output
-    # request_parser
   end
 
-  def shutdown_respond
+  def shut_down_respond
     output = "Total Requests: #{@counter}"
     client.puts headers(output)
     client.puts output
-    # request_parser
   end
+
+  def word_search_respond
+    if dictionary.include?(provided_word)
+      output = "#{provided_word} is a known word"
+    else
+      output = "#{provided_word} is not a known word"
+    end
+    client.puts headers(output)
+    client.puts output
+  end
+
+  def dictionary
+    dict = File.read('/usr/share/dict/words').split("\n")
+  end
+
+  def provided_word
+    provided_word = @path.split("=")[1]
+  end
+
 
   def pathfinder
     if @path == "/"
@@ -95,9 +108,11 @@ class Server
     elsif @path == "/hello"
       hello_world_respond
     elsif @path == "/datetime"
-      datetime_respond
+      date_time_respond
     elsif @path == "/shutdown"
-      shutdown_respond
+      shut_down_respond
+    elsif @path[0,12] == "/word_search"
+      word_search_respond
     end
   end
 

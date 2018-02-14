@@ -26,7 +26,7 @@ class TestServer < Minitest::Test
   def test_hello_request_returns_hello_world_counter
     response = Faraday.get "http://127.0.0.1:9292/hello"
     assert response.body.include?("Hello World!")
-    assert response.body.include?("(1)")
+    assert response.body.include?("(2)")
   end
 
   def test_datetime_request_returns_date_time
@@ -38,7 +38,25 @@ class TestServer < Minitest::Test
 
   def test_shutdown_request_returns_total_requests
     response = Faraday.get "http://127.0.0.1:9292/shutdown"
-    assert response.body.include?("(2)")
+    number = Integer
+    assert response.body.include?("(#{number})")
   end
 
+  def test_word_search_request_rejects_weird_words
+    response = Faraday.get "http://127.0.0.1:9292/word_search?word=butt0n"
+    word = "butt0n"
+    assert response.body.include?("#{word} is not a known word")
+    response = Faraday.get "http://127.0.0.1:9292/word_search?word=czw~"
+    word2 = "czw~"
+    assert response.body.include?("#{word2} is not a known word")
+  end
+
+  def test_word_search_request_finds_actual_words
+    response = Faraday.get "http://127.0.0.1:9292/word_search?word=overfactious"
+    word = "overfactious"
+    assert response.body.include?("#{word} is a known word")
+    response = Faraday.get "http://127.0.0.1:9292/word_search?word=subdorsal"
+    word2 = "subdorsal"
+    assert response.body.include?("#{word2} is a known word")
+  end
 end
