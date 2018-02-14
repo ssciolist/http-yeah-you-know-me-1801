@@ -80,6 +80,8 @@ class Server
     output = "Total Requests: #{@counter}"
     client.puts headers(output)
     client.puts output
+    client.close
+    tcp_server.close
   end
 
   def word_search_respond
