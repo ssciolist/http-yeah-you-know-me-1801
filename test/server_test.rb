@@ -62,9 +62,18 @@ class TestServer < Minitest::Test
     assert response.body.include?("Good luck!")
   end
 
-  # def test_post_to_start_game
-  #   skip
-  #   response = Faraday.post "http://127.0.0.1:9292/start_game"
-  #   assert response.body.include?("Good luck!")
-  # end
+  def test_get_game_returns_guess_count_if_no_guesses
+    skip
+    response = Faraday.get "http://127.0.0.1:9292/game"
+    assert_equal response.body, "0"
+  end
+
+  def test_post_guess_to_game
+    skip
+    game_start = Faraday.post "http://127.0.0.1:9292/start_game"
+    enter_guess = Faraday.post "http://127.0.0.1:9292/game" { :guess => '0' }
+    response = Faraday.get "http://127.0.0.1:9292/game"
+    assert_equal response.body, "1"
+  end
+
 end
