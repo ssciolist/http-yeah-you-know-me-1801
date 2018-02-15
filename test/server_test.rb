@@ -59,10 +59,23 @@ class TestServer < Minitest::Test
     Faraday.post "http://127.0.0.1:9292/start_game"
     Faraday.post "http://127.0.0.1:9292/game", { 'guess' => '50' }
     response = Faraday.get "http://127.0.0.1:9292/game"
-    assert_equal response.body, "Guess count: 1"
+    assert response.body.include?("Guess count: 1")
   end
 
-  def test_pull_out_guess_from_post_request
+  def test_display_last_guess_in_game
+    Faraday.post "http://127.0.0.1:9292/start_game"
+    Faraday.post "http://127.0.0.1:9292/game", { 'guess' => '50' }
+    response = Faraday.get "http://127.0.0.1:9292/game"
+    assert response.body.include?("Your last guess was 50")
+  end
+
+  def test_display_feedback_about_last_guess_in_game
+    skip
+    Faraday.post "http://127.0.0.1:9292/start_game"
+    Faraday.post "http://127.0.0.1:9292/game", { 'guess' => '50' }
+    response = Faraday.get "http://127.0.0.1:9292/game"
+    feedback = "Too low" || "Too high" || "Correct"
+    assert response.body.include?(feedback)
   end
 
   #can someone make a guess w/o starting game? they shouldnt b able to
