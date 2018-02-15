@@ -70,6 +70,33 @@ class Server
               "content-length: #{output.length}\r\n\r\n"].join("\r\n")
   end
 
+
+  def game_respond
+    # if post request store guess in @guesses
+    # otherwise same response as GET request
+    # output = "Guess count: {@guess_count}"
+    if @verb == "POST"
+      @game.guesses << @value_1
+      output = "dk"
+      client.puts redirect_headers(output, "/game", 302)
+      client.puts output
+    else
+      game_guess_count = @game.guess_count
+      output = "Guess count: #{game_guess_count}"
+      client.puts headers(output)
+      client.puts output
+    end
+  end
+
+  def redirect_headers(output, location, status_code)
+    ["http/1.1 #{status_code}",
+              "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
+              "Location: #{location}",
+              "server: ruby",
+              "content-type: text/html; charset=iso-8859-1",
+              "content-length: #{output.length}\r\n\r\n"].join("\r\n")
+  end
+
   def root_respond
     output = "<html><head></head><body>#{diagnostics}</body></html>"
     client.puts headers(output)
@@ -115,19 +142,6 @@ class Server
     @path.split("=")[1].downcase
   end
 
-  def game_respond
-    # if post request store guess in @guesses
-    # otherwise same response as GET request
-    # output = "Guess count: {@guess_count}"
-    if @verb == "POST"
-      @game.guesses << @value_1
-    else
-      game_guess_count = @game.guess_count
-      output = "Guess count: #{game_guess_count}"
-      client.puts headers(output)
-      client.puts output
-    end
-  end
 
   def start_game_respond
     output = "Good luck!"
