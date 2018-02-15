@@ -10,23 +10,30 @@ class Server
     @tcp_server = TCPServer.new(9292)
     @counter = 0
     @hello_counter = 0
+    # @guesses = []
+    # @guess_count = @guesses.count
   end
 
   def request_parser
     loop do
       @client = @tcp_server.accept
       @request_lines = []
-      while line = client.gets and !line.chomp.empty?
-        # look into tcp server.read
+      while line = @client.gets and !line.chomp.empty?
         @request_lines << line.chomp
       end
       puts @request_lines.inspect
       diagnostics
-      verbfinder
+      pathfinder
       @counter += 1
       @client.close
     end
     @counter
+  end
+
+  def postreader
+    content_length = @request_lines.grep(/^Content-Length:/)[0].split(" ")[1]
+    post_body = @client.read(content_length)
+    parameter_1 = post_body[(post_body.index("name=\"") + 4)]
   end
 
   def diagnostics
@@ -81,7 +88,7 @@ class Server
     client.puts headers(output)
     client.puts output
     client.close
-    tcp_server.close
+    @tcp_server.close
   end
 
   def word_search_respond
@@ -103,21 +110,26 @@ class Server
   end
 
   def game_respond
-    output = "Guess count: "
+    # if post request store guess in @guesses
+    # otherwise same response as GET request
+    # output = "Guess count: {@guess_count}"
+    game_guess_count = @game.guess_count
+    output = "Guess count: #{game_guess_count}"
     client.puts headers(output)
     client.puts output
   end
 
-  def verbfinder
-    if @verb == "GET"
-      pathfinder
-    elsif @verb == "POST"
-      postreader
-    end
+  def start_game_respond
+    output = "Good luck!"
+    @game = Game.new
+    client.puts headers(output)
+    client.puts output
   end
 
-  def postreader
-    game_respond
+  def error_respond
+    output = "Oops, something went wrong. There's nothing here"
+    client.puts headers(output)
+    client.puts output
   end
 
   def pathfinder
@@ -133,6 +145,10 @@ class Server
       word_search_respond
     elsif @path == "/game"
       game_respond
+    elsif @path == "/start_game"
+      start_game_respond
+    else
+      error_respond
     end
   end
 

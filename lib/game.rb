@@ -1,8 +1,9 @@
 class Game
   def initialize
-    "Good luck!"
     @correct_number = rand(0..100)
     @counter = 0
+    @guesses = []
+    @guess_count = @guesses.count
   end
 
   def guess
@@ -13,10 +14,13 @@ class Game
     while @guess.to_i != random_number
       if @guess.to_i > random_number
         "Too high"
+        @counter += 1
       else
         "Too low"
+        @counter += 1
       end
+      @counter
     end
-    "Correct! The answer was #{random_number}."
+    "Correct! You took #{counter} guesses."
   end
 end

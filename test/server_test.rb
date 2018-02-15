@@ -2,20 +2,6 @@ require "./test/test_helper"
 require "date"
 
 class TestServer < Minitest::Test
-  def test_server_responds_to_request
-    skip #because it's an old it1 test
-    response = Faraday.get "http://127.0.0.1:9292/"
-    assert response.body.include?("Hello World!")
-  end
-
-  def test_server_can_count_requests
-    skip #because it's an old it1 test
-    response = Faraday.get "http://127.0.0.1:9292/"
-    assert response.body.include?("(2)")
-    response = Faraday.get "http://127.0.0.1:9292/"
-    assert response.body.include?("(3)")
-  end
-
   def test_root_request_returns_diagnostic
     response = Faraday.get "http://127.0.0.1:9292/"
     assert response.body.include?("Verb: GET")
@@ -34,10 +20,10 @@ class TestServer < Minitest::Test
     assert response.body.include?(today)
   end
 
-  def test_shutdown_request_returns_total_requests
-    response = Faraday.get "http://127.0.0.1:9292/shutdown"
-    assert response.body.include?("Total Requests:")
-  end
+  # def test_shutdown_request_returns_total_requests
+  #   response = Faraday.get "http://127.0.0.1:9292/shutdown"
+  #   assert response.body.include?("Total Requests:")
+  # end
 
   def test_word_search_request_rejects_weird_words
     response = Faraday.get "http://127.0.0.1:9292/word_search?word=butt0n"
@@ -63,9 +49,11 @@ class TestServer < Minitest::Test
   end
 
   def test_get_game_returns_guess_count_if_no_guesses
-    skip
+    # skip
+    response = Faraday.post "http://127.0.0.1:9292/start_game"
     response = Faraday.get "http://127.0.0.1:9292/game"
     assert_equal response.body, "0"
+    #what if its not a number guess?
   end
 
   def test_post_guess_to_game
@@ -75,5 +63,9 @@ class TestServer < Minitest::Test
     response = Faraday.get "http://127.0.0.1:9292/game"
     assert_equal response.body, "1"
   end
+#can someone make a guess w/o starting game? they shouldnt b able to
+  # def test_pull_out_guess_from_post_request
+  # end
+
 
 end
