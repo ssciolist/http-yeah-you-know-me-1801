@@ -20,10 +20,11 @@ class TestServer < Minitest::Test
     assert response.body.include?(today)
   end
 
-  # def test_shutdown_request_returns_total_requests
-  #   response = Faraday.get "http://127.0.0.1:9292/shutdown"
-  #   assert response.body.include?("Total Requests:")
-  # end
+  def test_shutdown_request_returns_total_requests
+    skip
+    response = Faraday.get "http://127.0.0.1:9292/shutdown"
+    assert response.body.include?("Total Requests:")
+  end
 
   def test_word_search_request_rejects_weird_words
     response = Faraday.get "http://127.0.0.1:9292/word_search?word=butt0n"
@@ -49,23 +50,21 @@ class TestServer < Minitest::Test
   end
 
   def test_get_game_returns_guess_count_if_no_guesses
-    # skip
-    response = Faraday.post "http://127.0.0.1:9292/start_game"
+    Faraday.post "http://127.0.0.1:9292/start_game"
     response = Faraday.get "http://127.0.0.1:9292/game"
-    assert_equal response.body, "0"
-    #what if its not a number guess?
+    assert_equal response.body, "Guess count: 0"
   end
 
   def test_post_guess_to_game
-    skip
-    game_start = Faraday.post "http://127.0.0.1:9292/start_game"
-    enter_guess = Faraday.post "http://127.0.0.1:9292/game?guess=0"
-    response = Faraday.get "http://127.0.0.1:9292/game"
+    Faraday.post "http://127.0.0.1:9292/start_game"
+    Faraday.post "http://127.0.0.1:9292/game", { :guess => '50' }
+    Faraday.get "http://127.0.0.1:9292/game"
     assert_equal response.body, "1"
   end
-#can someone make a guess w/o starting game? they shouldnt b able to
-  # def test_pull_out_guess_from_post_request
-  # end
 
+  def test_pull_out_guess_from_post_request
+  end
 
+  #can someone make a guess w/o starting game? they shouldnt b able to
+  #what if its not a number guess?
 end

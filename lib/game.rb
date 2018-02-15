@@ -1,4 +1,6 @@
 class Game
+  attr_accessor :guesses,
+                :guess_count
   def initialize
     @correct_number = rand(0..100)
     @counter = 0

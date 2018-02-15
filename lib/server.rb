@@ -1,10 +1,15 @@
 require 'socket'
 require 'time'
 require 'pry'
+require './lib/game'
 
 # creates server object
 class Server
-  attr_reader :client
+  attr_reader :client,
+              :hello_counter,
+              :counter,
+              :diagnostics,
+              :value_1
 
   def initialize
     @tcp_server = TCPServer.new(9292)
@@ -31,9 +36,10 @@ class Server
   end
 
   def postreader
-    content_length = @request_lines.grep(/^Content-Length:/)[0].split(" ")[1]
-    post_body = @client.read(content_length)
-    parameter_1 = post_body[(post_body.index("name=\"") + 4)]
+    content_length = @request_lines.grep(/^Content-Length:/)[0].split(" ")[1].to_i
+    post_body = (@client.read(content_length)).to_s
+    # parameter_1 = post_body.split("\n")[1].split("=")[1].split("\"")[1]
+    @value_1 = post_body.split("\n")[3]
   end
 
   def diagnostics
@@ -113,10 +119,14 @@ class Server
     # if post request store guess in @guesses
     # otherwise same response as GET request
     # output = "Guess count: {@guess_count}"
-    game_guess_count = @game.guess_count
-    output = "Guess count: #{game_guess_count}"
-    client.puts headers(output)
-    client.puts output
+    if @verb == "POST"
+      @game.guesses << @value_1
+    else
+      game_guess_count = @game.guess_count
+      output = "Guess count: #{game_guess_count}"
+      client.puts headers(output)
+      client.puts output
+    end
   end
 
   def start_game_respond
@@ -131,6 +141,8 @@ class Server
     client.puts headers(output)
     client.puts output
   end
+
+  @test = "whatever"
 
   def pathfinder
     if @path == "/"
@@ -152,7 +164,13 @@ class Server
     end
   end
 
+  # def response(client)
+  #   client.puts headers(output)
+  #   client.puts output
+  # end
+
   def run
     request_parser
   end
+
 end
