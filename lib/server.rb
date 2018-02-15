@@ -15,8 +15,6 @@ class Server
     @tcp_server = TCPServer.new(9292)
     @counter = 0
     @hello_counter = 0
-    # @guesses = []
-    # @guess_count = @guesses.count
   end
 
   def request_parser
@@ -38,8 +36,8 @@ class Server
   def postreader
     content_length = @request_lines.grep(/^Content-Length:/)[0].split(" ")[1].to_i
     post_body = (@client.read(content_length)).to_s
-    # parameter_1 = post_body.split("\n")[1].split("=")[1].split("\"")[1]
-    @value_1 = post_body.split("\n")[3]
+    @value_1 = post_body.split("=")[1]
+    # You should test that the key is Guess if you have time
   end
 
   def diagnostics
@@ -72,16 +70,17 @@ class Server
 
 
   def game_respond
-    # if post request store guess in @guesses
-    # otherwise same response as GET request
-    # output = "Guess count: {@guess_count}"
     if @verb == "POST"
-      @game.guesses << @value_1
-      output = "dk"
+      postreader
+      @game.guesses << value_1
+      output = "Idc"
+      # get feedback from someone about what this value should be
       client.puts redirect_headers(output, "/game", 302)
       client.puts output
     else
-      game_guess_count = @game.guess_count
+      game_guess_count = @game.guesses.count
+
+
       output = "Guess count: #{game_guess_count}"
       client.puts headers(output)
       client.puts output
@@ -142,7 +141,6 @@ class Server
     @path.split("=")[1].downcase
   end
 
-
   def start_game_respond
     output = "Good luck!"
     @game = Game.new
@@ -155,8 +153,6 @@ class Server
     client.puts headers(output)
     client.puts output
   end
-
-  @test = "whatever"
 
   def pathfinder
     if @path == "/"
@@ -177,11 +173,6 @@ class Server
       error_respond
     end
   end
-
-  # def response(client)
-  #   client.puts headers(output)
-  #   client.puts output
-  # end
 
   def run
     request_parser

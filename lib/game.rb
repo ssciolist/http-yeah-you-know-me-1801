@@ -1,6 +1,7 @@
 class Game
   attr_accessor :guesses,
-                :guess_count
+                :guess_count,
+                :correct_number
   def initialize
     @correct_number = rand(0..100)
     @counter = 0
@@ -23,6 +24,6 @@ class Game
       end
       @counter
     end
-    "Correct! You took #{counter} guesses."
+    "Correct!"
   end
 end
