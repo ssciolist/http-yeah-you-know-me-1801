@@ -15,6 +15,7 @@ class Server
     @tcp_server = TCPServer.new(9292)
     @counter = 0
     @hello_counter = 0
+    @game = nil
   end
 
   def request_parser
@@ -89,6 +90,7 @@ class Server
     end
   end
 
+  ## set headers status code to default, set location default to nil)
   def redirect_headers(output, location, status_code)
     ["http/1.1 #{status_code}",
               "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
@@ -144,10 +146,14 @@ class Server
   end
 
   def start_game_respond
-    if @verb == "POST"
+    if @verb == "POST" && @game.nil?
       output = "Good luck!"
       @game = Game.new
       client.puts redirect_headers(output, "/game", 301)
+      client.puts output
+    elsif @verb == "POST"
+      output = "Game in progress"
+      client.puts redirect_headers(output, "", 403)
       client.puts output
     else
       output = "Post to start game"
