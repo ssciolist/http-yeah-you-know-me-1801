@@ -38,7 +38,7 @@ class Server
     content_length = @request_lines.grep(/^Content-Length:/)[0].split(" ")[1].to_i
     post_body = (@client.read(content_length)).to_s
     @value_1 = post_body.split("=")[1]
-    # You should test that the key is Guess if you have time
+
   end
 
   def diagnostics
@@ -73,11 +73,9 @@ class Server
     if @verb == "POST"
       postreader
       @game.guesses << value_1
-      output = "Idc"
-      # get feedback from someone about what this value should be
+      output = "This value is not displayed."
       client.puts redirect_headers(output, "/game", 302)
       puts redirect_headers(output, "/game", 302)
-      client.puts output
     else
       game_guess_count = @game.guesses.compact.count
       last_guess = @game.guesses.last
@@ -148,11 +146,11 @@ class Server
     if @verb == "POST" && @game.nil?
       output = "Good luck!"
       @game = Game.new
-      client.puts redirect_headers(output, "/game", 301)
+      client.puts redirect_headers(output, "", "200 OK")
       client.puts output
     elsif @verb == "POST"
-      output = "Game in progress"
-      client.puts redirect_headers(output, "", 403)
+      output = "403 Forbidden: Game in progress"
+      client.puts redirect_headers(output, "", "403 Forbidden")
       client.puts output
     else
       output = "Post to start game"
@@ -169,7 +167,7 @@ class Server
   end
 
   def error_respond
-    output = "Oops, something went wrong. There's nothing here"
+    output = "404: Oops, something went wrong. There's nothing here"
     client.puts redirect_headers(output, "", 404)
     client.puts output
   end

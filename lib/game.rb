@@ -10,12 +10,12 @@ class Game
 
   def feedback(guess)
     return "You haven't made any guesses" if guess.nil?
-    if guess > @correct_number
+    if guess.to_i > @correct_number
       "Your last guess was #{guess}. Too high"
-    elsif guess < @correct_number
+    elsif guess.to_i < @correct_number
       "Your last guess was #{guess}. Too low"
     else
-      "Correct!"
+      "Correct! The answer was #{guess}."
     end
   end
 end
