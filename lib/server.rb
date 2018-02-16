@@ -79,11 +79,10 @@ class Server
       puts redirect_headers(output, "/game", 302)
       client.puts output
     else
-      game_guess_count = @game.guesses.count
-      last_guess = @game.guesses.last.to_i
+      game_guess_count = @game.guesses.compact.count
+      last_guess = @game.guesses.last
       feedback = @game.feedback(last_guess)
       output = "Guess count: #{game_guess_count}\n
-                Your last guess was #{last_guess}\n
                 #{feedback}"
       client.puts headers(output)
       client.puts output
