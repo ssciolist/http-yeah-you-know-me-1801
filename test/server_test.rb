@@ -72,7 +72,7 @@ class TestServer < Minitest::Test
   def test_display_feedback_about_last_guess_in_game
     # skip
     Faraday.post "http://127.0.0.1:9292/start_game"
-    Faraday.post "http://127.0.0.1:9292/game", { 'guess' => '50' }
+    Faraday.post "http://127.0.0.1:9292/game", 'guess' => '50'
     response = Faraday.get "http://127.0.0.1:9292/game"
     feedback = "Too low" || "Too high" || "Correct"
     assert response.body.include?(feedback)
