@@ -15,7 +15,7 @@ class Game
     elsif guess.to_i < @correct_number
       "Your last guess was #{guess}. Too low"
     else
-      "Correct! The answer was #{guess}."
+      "Correct! Your answer was #{guess}."
     end
   end
 end

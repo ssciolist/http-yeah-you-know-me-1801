@@ -48,7 +48,6 @@ class Server
     host = @request_lines.grep(/^Host/)[0].split(' ')[1].split(':')[0]
     port = @request_lines.grep(/^Host/)[0].split(' ')[1].split(':')[1]
     origin = @request_lines[1].split(" ")[1].split(":")[0]
-    # will need to fix that to not be host somehow
     accept = @request_lines.grep(/^Accept:/)[0].split(' ')[1]
     "<pre>
     Verb: #{@verb}
