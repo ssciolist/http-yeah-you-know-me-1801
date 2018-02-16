@@ -15,6 +15,7 @@ class Server
     @tcp_server = TCPServer.new(9292)
     @counter = 0
     @hello_counter = 0
+    @game = nil
   end
 
   def request_parser
@@ -68,7 +69,6 @@ class Server
               "content-length: #{output.length}\r\n\r\n"].join("\r\n")
   end
 
-
   def game_respond
     if @verb == "POST"
       postreader
@@ -76,19 +76,20 @@ class Server
       output = "Idc"
       # get feedback from someone about what this value should be
       client.puts redirect_headers(output, "/game", 302)
+      puts redirect_headers(output, "/game", 302)
       client.puts output
     else
-      game_guess_count = @game.guesses.count
-      last_guess = @game.guesses.last.to_i
+      game_guess_count = @game.guesses.compact.count
+      last_guess = @game.guesses.last
       feedback = @game.feedback(last_guess)
       output = "Guess count: #{game_guess_count}\n
-                Your last guess was #{last_guess}\n
                 #{feedback}"
       client.puts headers(output)
       client.puts output
     end
   end
 
+  ## set headers status code to default, set location default to nil)
   def redirect_headers(output, location, status_code)
     ["http/1.1 #{status_code}",
               "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
@@ -144,15 +145,32 @@ class Server
   end
 
   def start_game_respond
-    output = "Good luck!"
-    @game = Game.new
-    client.puts headers(output)
+    if @verb == "POST" && @game.nil?
+      output = "Good luck!"
+      @game = Game.new
+      client.puts redirect_headers(output, "/game", 301)
+      client.puts output
+    elsif @verb == "POST"
+      output = "Game in progress"
+      client.puts redirect_headers(output, "", 403)
+      client.puts output
+    else
+      output = "Post to start game"
+      client.puts headers(output)
+      client.puts output
+    end
+  end
+
+  def system_error_respond
+    output = "It's broke"
+    client.puts redirect_headers(output, "", 500)
     client.puts output
+    raise StandardError
   end
 
   def error_respond
     output = "Oops, something went wrong. There's nothing here"
-    client.puts headers(output)
+    client.puts redirect_headers(output, "", 404)
     client.puts output
   end
 
@@ -171,6 +189,8 @@ class Server
       game_respond
     elsif @path == "/start_game"
       start_game_respond
+    elsif @path == "/force_error"
+      system_error_respond
     else
       error_respond
     end
