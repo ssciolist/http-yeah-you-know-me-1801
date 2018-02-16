@@ -79,9 +79,11 @@ class Server
       client.puts output
     else
       game_guess_count = @game.guesses.count
-
-
-      output = "Guess count: #{game_guess_count}"
+      last_guess = @game.guesses.last.to_i
+      feedback = @game.feedback(last_guess)
+      output = "Guess count: #{game_guess_count}\n
+                Your last guess was #{last_guess}\n
+                #{feedback}"
       client.puts headers(output)
       client.puts output
     end

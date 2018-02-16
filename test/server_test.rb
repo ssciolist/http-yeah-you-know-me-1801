@@ -52,7 +52,7 @@ class TestServer < Minitest::Test
   def test_get_game_returns_guess_count_if_no_guesses
     Faraday.post "http://127.0.0.1:9292/start_game"
     response = Faraday.get "http://127.0.0.1:9292/game"
-    assert_equal response.body, "Guess count: 0"
+    assert response.body.include?("Guess count: 0")
   end
 
   def test_post_guess_to_game
@@ -70,7 +70,7 @@ class TestServer < Minitest::Test
   end
 
   def test_display_feedback_about_last_guess_in_game
-    skip
+    # skip
     Faraday.post "http://127.0.0.1:9292/start_game"
     Faraday.post "http://127.0.0.1:9292/game", { 'guess' => '50' }
     response = Faraday.get "http://127.0.0.1:9292/game"
