@@ -1,10 +1,15 @@
 require 'socket'
 require 'time'
 require 'pry'
+require './lib/game'
 
 # creates server object
 class Server
-  attr_reader :client
+  attr_reader :client,
+              :hello_counter,
+              :counter,
+              :diagnostics,
+              :value_1
 
   def initialize
     @tcp_server = TCPServer.new(9292)
@@ -16,8 +21,7 @@ class Server
     loop do
       @client = @tcp_server.accept
       @request_lines = []
-      while line = client.gets and !line.chomp.empty?
-        # look into tcp server.read
+      while line = @client.gets and !line.chomp.empty?
         @request_lines << line.chomp
       end
       puts @request_lines.inspect
@@ -29,8 +33,15 @@ class Server
     @counter
   end
 
+  def postreader
+    content_length = @request_lines.grep(/^Content-Length:/)[0].split(" ")[1].to_i
+    post_body = (@client.read(content_length)).to_s
+    @value_1 = post_body.split("=")[1]
+    # You should test that the key is Guess if you have time
+  end
+
   def diagnostics
-    verb = @request_lines[0].split(" ")[0]
+    @verb = @request_lines[0].split(" ")[0]
     @path = @request_lines[0].split(" ")[1]
     protocol = @request_lines[0].split(" ")[2]
     host = @request_lines.grep(/^Host/)[0].split(' ')[1].split(':')[0]
@@ -38,9 +49,8 @@ class Server
     origin = @request_lines[1].split(" ")[1].split(":")[0]
     # will need to fix that to not be host somehow
     accept = @request_lines.grep(/^Accept:/)[0].split(' ')[1]
-    # binding.pry
     "<pre>
-    Verb: #{verb}
+    Verb: #{@verb}
     Path: #{@path}
     Protocol: #{protocol}
     Host: #{host}
@@ -58,6 +68,36 @@ class Server
               "content-length: #{output.length}\r\n\r\n"].join("\r\n")
   end
 
+
+  def game_respond
+    if @verb == "POST"
+      postreader
+      @game.guesses << value_1
+      output = "Idc"
+      # get feedback from someone about what this value should be
+      client.puts redirect_headers(output, "/game", 302)
+      client.puts output
+    else
+      game_guess_count = @game.guesses.count
+      last_guess = @game.guesses.last.to_i
+      feedback = @game.feedback(last_guess)
+      output = "Guess count: #{game_guess_count}\n
+                Your last guess was #{last_guess}\n
+                #{feedback}"
+      client.puts headers(output)
+      client.puts output
+    end
+  end
+
+  def redirect_headers(output, location, status_code)
+    ["http/1.1 #{status_code}",
+              "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
+              "Location: #{location}",
+              "server: ruby",
+              "content-type: text/html; charset=iso-8859-1",
+              "content-length: #{output.length}\r\n\r\n"].join("\r\n")
+  end
+
   def root_respond
     output = "<html><head></head><body>#{diagnostics}</body></html>"
     client.puts headers(output)
@@ -65,10 +105,10 @@ class Server
   end
 
   def hello_world_respond
+    @hello_counter += 1
     output = "Hello World! (#{@hello_counter})"
     client.puts headers(output)
     client.puts output
-    @hello_counter += 1
   end
 
   def date_time_respond
@@ -81,6 +121,8 @@ class Server
     output = "Total Requests: #{@counter}"
     client.puts headers(output)
     client.puts output
+    client.close
+    @tcp_server.close
   end
 
   def word_search_respond
@@ -94,13 +136,25 @@ class Server
   end
 
   def dictionary
-    dict = File.read('/usr/share/dict/words').split("\n")
+    File.read('/usr/share/dict/words').split("\n")
   end
 
   def provided_word
-    provided_word = @path.split("=")[1]
+    @path.split("=")[1].downcase
   end
 
+  def start_game_respond
+    output = "Good luck!"
+    @game = Game.new
+    client.puts headers(output)
+    client.puts output
+  end
+
+  def error_respond
+    output = "Oops, something went wrong. There's nothing here"
+    client.puts headers(output)
+    client.puts output
+  end
 
   def pathfinder
     if @path == "/"
@@ -111,12 +165,19 @@ class Server
       date_time_respond
     elsif @path == "/shutdown"
       shut_down_respond
-    elsif @path[0,12] == "/word_search"
+    elsif @path[0, 12] == "/word_search"
       word_search_respond
+    elsif @path == "/game"
+      game_respond
+    elsif @path == "/start_game"
+      start_game_respond
+    else
+      error_respond
     end
   end
 
   def run
     request_parser
   end
+
 end

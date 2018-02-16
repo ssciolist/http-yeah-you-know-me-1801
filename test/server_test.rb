@@ -2,20 +2,6 @@ require "./test/test_helper"
 require "date"
 
 class TestServer < Minitest::Test
-  def test_server_responds_to_request
-    skip #because it's an old it1 test
-    response = Faraday.get "http://127.0.0.1:9292/"
-    assert response.body.include?("Hello World!")
-  end
-
-  def test_server_can_count_requests
-    skip #because it's an old it1 test
-    response = Faraday.get "http://127.0.0.1:9292/"
-    assert response.body.include?("(2)")
-    response = Faraday.get "http://127.0.0.1:9292/"
-    assert response.body.include?("(3)")
-  end
-
   def test_root_request_returns_diagnostic
     response = Faraday.get "http://127.0.0.1:9292/"
     assert response.body.include?("Verb: GET")
@@ -25,21 +11,19 @@ class TestServer < Minitest::Test
 
   def test_hello_request_returns_hello_world_counter
     response = Faraday.get "http://127.0.0.1:9292/hello"
-    assert response.body.include?("Hello World!")
-    assert response.body.include?("(2)")
+    assert_equal response.body, "Hello World! (1)"
   end
 
   def test_datetime_request_returns_date_time
-    # skip
     response = Faraday.get "http://127.0.0.1:9292/datetime"
     today = Time.now.strftime("%I\:%M%p on %A, %B %e, %Y")
     assert response.body.include?(today)
   end
 
   def test_shutdown_request_returns_total_requests
+    skip
     response = Faraday.get "http://127.0.0.1:9292/shutdown"
-    number = Integer
-    assert response.body.include?("(#{number})")
+    assert response.body.include?("Total Requests:")
   end
 
   def test_word_search_request_rejects_weird_words
@@ -52,11 +36,48 @@ class TestServer < Minitest::Test
   end
 
   def test_word_search_request_finds_actual_words
-    response = Faraday.get "http://127.0.0.1:9292/word_search?word=overfactious"
-    word = "overfactious"
+    response = Faraday.get "http://127.0.0.1:9292/word_search?word=Overfactious"
+    word = "Overfactious".downcase
     assert response.body.include?("#{word} is a known word")
     response = Faraday.get "http://127.0.0.1:9292/word_search?word=subdorsal"
     word2 = "subdorsal"
     assert response.body.include?("#{word2} is a known word")
   end
+
+  def test_post_to_start_game
+    response = Faraday.post "http://127.0.0.1:9292/start_game"
+    assert response.body.include?("Good luck!")
+  end
+
+  def test_get_game_returns_guess_count_if_no_guesses
+    Faraday.post "http://127.0.0.1:9292/start_game"
+    response = Faraday.get "http://127.0.0.1:9292/game"
+    assert response.body.include?("Guess count: 0")
+  end
+
+  def test_post_guess_to_game
+    Faraday.post "http://127.0.0.1:9292/start_game"
+    Faraday.post "http://127.0.0.1:9292/game", { 'guess' => '50' }
+    response = Faraday.get "http://127.0.0.1:9292/game"
+    assert response.body.include?("Guess count: 1")
+  end
+
+  def test_display_last_guess_in_game
+    Faraday.post "http://127.0.0.1:9292/start_game"
+    Faraday.post "http://127.0.0.1:9292/game", { 'guess' => '50' }
+    response = Faraday.get "http://127.0.0.1:9292/game"
+    assert response.body.include?("Your last guess was 50")
+  end
+
+  def test_display_feedback_about_last_guess_in_game
+    # skip
+    Faraday.post "http://127.0.0.1:9292/start_game"
+    Faraday.post "http://127.0.0.1:9292/game", 'guess' => '50'
+    response = Faraday.get "http://127.0.0.1:9292/game"
+    feedback = "Too low" || "Too high" || "Correct"
+    assert response.body.include?(feedback)
+  end
+
+  #can someone make a guess w/o starting game? they shouldnt b able to
+  #what if its not a number guess?
 end
