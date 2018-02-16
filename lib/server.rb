@@ -68,7 +68,6 @@ class Server
               "content-length: #{output.length}\r\n\r\n"].join("\r\n")
   end
 
-
   def game_respond
     if @verb == "POST"
       postreader
@@ -76,6 +75,7 @@ class Server
       output = "Idc"
       # get feedback from someone about what this value should be
       client.puts redirect_headers(output, "/game", 302)
+      puts redirect_headers(output, "/game", 302)
       client.puts output
     else
       game_guess_count = @game.guesses.count
@@ -144,15 +144,28 @@ class Server
   end
 
   def start_game_respond
-    output = "Good luck!"
-    @game = Game.new
-    client.puts headers(output)
+    if @verb == "POST"
+      output = "Good luck!"
+      @game = Game.new
+      client.puts redirect_headers(output, "/game", 301)
+      client.puts output
+    else
+      output = "Post to start game"
+      client.puts headers(output)
+      client.puts output
+    end
+  end
+
+  def system_error_respond
+    output = "It's broke"
+    client.puts redirect_headers(output, "", 500)
     client.puts output
+    raise StandardError
   end
 
   def error_respond
     output = "Oops, something went wrong. There's nothing here"
-    client.puts headers(output)
+    client.puts redirect_headers(output, "", 404)
     client.puts output
   end
 
@@ -171,6 +184,8 @@ class Server
       game_respond
     elsif @path == "/start_game"
       start_game_respond
+    elsif @path == "/force_error"
+      system_error_respond
     else
       error_respond
     end

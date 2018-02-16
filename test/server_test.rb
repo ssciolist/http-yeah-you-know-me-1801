@@ -57,14 +57,14 @@ class TestServer < Minitest::Test
 
   def test_post_guess_to_game
     Faraday.post "http://127.0.0.1:9292/start_game"
-    Faraday.post "http://127.0.0.1:9292/game", { 'guess' => '50' }
+    Faraday.post "http://127.0.0.1:9292/game", 'guess' => '50'
     response = Faraday.get "http://127.0.0.1:9292/game"
     assert response.body.include?("Guess count: 1")
   end
 
   def test_display_last_guess_in_game
     Faraday.post "http://127.0.0.1:9292/start_game"
-    Faraday.post "http://127.0.0.1:9292/game", { 'guess' => '50' }
+    Faraday.post "http://127.0.0.1:9292/game", 'guess' => '50'
     response = Faraday.get "http://127.0.0.1:9292/game"
     assert response.body.include?("Your last guess was 50")
   end
